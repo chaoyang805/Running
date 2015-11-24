@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@mipmap/ic_menu_home_36dp"
+            android:title="@string/start_running"/>
+
+        <item
+            android:id="@+id/nav_history"
+            android:icon="@mipmap/ic_menu_history_36dp"
+            android:title="@string/history"/>
+        <item
+            android:id="@+id/nav_statistics"
+            android:icon="@mipmap/ic_menu_statistics_36dp"
+            android:title="@string/statistics"/>
+        <item android:id="@+id/nav_plan"
+            android:icon="@mipmap/ic_menu_plan_36dp"
+            android:title="@string/plans"/>
+    </group>
+
+    <item android:title="@string/social">
+        <menu>
+            <item
+                android:id="@+id/nav_friends"
+                android:icon="@mipmap/ic_menu_friends_36dp"
+                android:title="@string/my_friends"/>
+            <item
+                android:id="@+id/nav_challenges"
+                android:icon="@mipmap/ic_menu_challenge_36dp"
+                android:title="@string/challenges"/>
+        </menu>
+    </item>
+    <item android:title="@string/others">
+        <menu>
+            <item android:id="@+id/nav_setting"
+                android:icon="@mipmap/ic_menu_settings_36dp"
+                android:title="@string/action_settings"/>
+            <item android:id="@+id/nav_about"
+                android:icon="@mipmap/ic_menu_about_36dp"
+                android:title="@string/about"/>
+        </menu>
+    </item>
+</menu>
