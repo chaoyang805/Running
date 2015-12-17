@@ -1,0 +1,92 @@
+package com.chaoyang805.running.service;
+
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.os.Binder;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
+
+import com.chaoyang805.running.StepDetector;
+import com.chaoyang805.running.StepDisplayer;
+import com.chaoyang805.running.utils.LogHelper;
+
+/**
+ * Created by chaoyang805 on 2015/12/15.
+ */
+public class StepService extends Service {
+
+    private static final String TAG = LogHelper.makeLogTag(StepService.class);
+
+    private SensorManager mSensorManager;
+    private StepDetector mStepDetector;
+    private StepDisplayer mStepDisplayer;
+
+    private Callback mCallback;
+    private Sensor mSensor;
+
+    private int mSteps;
+
+    private StepDisplayer.Listener mStepListener = new StepDisplayer.Listener() {
+        @Override
+        public void stepsChanged(int value) {
+            mSteps = value;
+            LogHelper.i(TAG, "stepsChanged:" + mSteps);
+            passValue();
+        }
+        @Override
+        public void passValue() {
+            if (mCallback != null) {
+                mCallback.stepsChanged(mSteps);
+            }
+        }
+    };
+
+    public void addCallback(Callback callback){
+        mCallback = callback;
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return new StepBinder();
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mStepDetector = new StepDetector();
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mSensorManager.registerListener(mStepDetector, mSensor, SensorManager.SENSOR_DELAY_FASTEST);
+
+        mStepDisplayer = new StepDisplayer();
+        mStepDisplayer.addListener(mStepListener);
+        mStepDetector.addStepListener(mStepDisplayer);
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterDetector();
+    }
+
+    private void unregisterDetector() {
+        mSensorManager.unregisterListener(mStepDetector);
+    }
+
+    public interface Callback{
+        void stepsChanged(int value);
+    }
+    public class StepBinder extends Binder {
+        public StepService getService(){
+            return StepService.this;
+        }
+    }
+
+}
