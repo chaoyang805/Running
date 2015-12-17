@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,9 @@ import com.chaoyang805.running.R;
 import com.chaoyang805.running.controller.map.LocationManager;
 import com.chaoyang805.running.service.StepService;
 import com.chaoyang805.running.utils.LogHelper;
+import com.chaoyang805.running.utils.XmlReader;
+
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.lang.ref.WeakReference;
 
@@ -78,6 +82,7 @@ public class HomeFragment extends Fragment {
         public void onServiceConnected(ComponentName name, IBinder service) {
             mStepService = ((StepService.StepBinder) service).getService();
             mStepService.addCallback(mCallback);
+            mStepService.reloadSettings();
             LogHelper.d(TAG, "onServiceConnected");
         }
 
@@ -107,6 +112,38 @@ public class HomeFragment extends Fragment {
         mLocationManager = new LocationManager(getActivity(), mMapView);
         mLocationManager.init();
         mLocationManager.requestLocation();
+
+//        try {
+//            long start = System.currentTimeMillis();
+//            XmlWriter writer = new XmlWriter();
+//            writer.start("chaoyang805", "2015.12.04 21:12:52");
+//            for (int i = 0; i < 5; i++) {
+//                writer.addPath(new LatLng(114.2342, 22.5322));
+//            }
+//            writer.end();
+//            writer.write(getActivity(), "2015-12-05.xml");
+//            long end = System.currentTimeMillis();
+//            Log.d(TAG, "total time = " + (end - start));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+        try {
+            XmlReader reader = new XmlReader();
+            reader.parse(getActivity(), "2015-12-05.xml", new XmlReader.Callback() {
+                @Override
+                public void start(String name, String date) {
+                    Log.d(TAG, String.format("name:%s,date:%s",name,date));
+                }
+
+                @Override
+                public void findNext(int position, double lat, double lng) {
+                    Log.d(TAG, String.format("position:%d,lat:%f,lng:%f", position, lat, lng));
+                }
+            });
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
         return root;
     }
 
@@ -159,7 +196,6 @@ public class HomeFragment extends Fragment {
         super.onDestroy();
         mLocationManager.onDestroy();
         mHandler.removeMessages(STEPS_MSG);
-
     }
 
     private StepService.Callback mCallback = new StepService.Callback() {
@@ -167,6 +203,7 @@ public class HomeFragment extends Fragment {
         public void stepsChanged(int value) {
             LogHelper.d(TAG, "HomeFragment_stepsChanged:" + value);
             mHandler.obtainMessage(STEPS_MSG, value, 0).sendToTarget();
+
         }
     };
 
@@ -182,7 +219,7 @@ public class HomeFragment extends Fragment {
         WeakReference<Fragment> mReference;
 
         public StepServiceHandler(Fragment fragment) {
-            mReference = new WeakReference<Fragment>(fragment);
+            mReference = new WeakReference<>(fragment);
         }
 
         @Override
@@ -192,7 +229,7 @@ public class HomeFragment extends Fragment {
                 case STEPS_MSG:
                     final Fragment fragment = mReference.get();
                     if (fragment != null) {
-                        ((HomeFragment)fragment).updateSteps(msg.arg1);
+                        ((HomeFragment) fragment).updateSteps(msg.arg1);
                     }
                     break;
                 default:

@@ -17,6 +17,10 @@ public class StepDisplayer implements StepListener {
     public StepDisplayer(){
     }
 
+    public void reloadSettings() {
+        notifyListeners();
+    }
+
     public interface Listener{
         public void stepsChanged(int value);
         public void passValue();

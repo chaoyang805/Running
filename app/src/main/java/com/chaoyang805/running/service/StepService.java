@@ -36,6 +36,7 @@ public class StepService extends Service {
             LogHelper.i(TAG, "stepsChanged:" + mSteps);
             passValue();
         }
+
         @Override
         public void passValue() {
             if (mCallback != null) {
@@ -44,7 +45,7 @@ public class StepService extends Service {
         }
     };
 
-    public void addCallback(Callback callback){
+    public void addCallback(Callback callback) {
         mCallback = callback;
     }
 
@@ -70,6 +71,12 @@ public class StepService extends Service {
 
     }
 
+    public void reloadSettings() {
+        if (mStepDisplayer != null) {
+            mStepDisplayer.reloadSettings();
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -80,11 +87,12 @@ public class StepService extends Service {
         mSensorManager.unregisterListener(mStepDetector);
     }
 
-    public interface Callback{
+    public interface Callback {
         void stepsChanged(int value);
     }
+
     public class StepBinder extends Binder {
-        public StepService getService(){
+        public StepService getService() {
             return StepService.this;
         }
     }
