@@ -10,74 +10,41 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.baidu.location.BDLocation;
-import com.baidu.location.BDLocationListener;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.MapView;
-import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.model.LatLng;
 import com.chaoyang805.running.R;
+import com.chaoyang805.running.controller.TrackDrawer;
 import com.chaoyang805.running.controller.map.LocationManager;
+import com.chaoyang805.running.service.ServiceBinder;
 import com.chaoyang805.running.service.StepService;
+import com.chaoyang805.running.service.TrackService;
 import com.chaoyang805.running.utils.LogHelper;
-import com.chaoyang805.running.utils.XmlReader;
-
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 /**
  * Created by chaoyang805 on 2015/11/24.
  */
 public class HomeFragment extends Fragment {
     private static final String TAG = LogHelper.makeLogTag(HomeFragment.class);
-    private MapView mMapView;
-    private boolean isFirstLocate = true;
-    private BaiduMap mBaiduMap;
-
-    private BDLocationListener mLocationListener = new BDLocationListener() {
-        @Override
-        public void onReceiveLocation(BDLocation bdLocation) {
-            LogHelper.d(TAG, "onReceiveLocation" + bdLocation.getLocType());
-            if (bdLocation == null) {
-                LogHelper.d(TAG, "onReceiveLocation bdLocation == null");
-                return;
-            }
-            //定位成功的情况
-            if (bdLocation.getLocType() == 61 ||
-                    bdLocation.getLocType() == 65 ||
-                    bdLocation.getLocType() == 66 ||
-                    bdLocation.getLocType() == 68 ||
-                    bdLocation.getLocType() == 161) {
-                MyLocationData locationData = new MyLocationData.Builder()
-                        .latitude(bdLocation.getLatitude())
-                        .longitude(bdLocation.getLongitude())
-                        .accuracy(bdLocation.getRadius())
-                        .direction(bdLocation.getDirection())
-                        .build();
-                if (isFirstLocate) {
-                    LogHelper.d(TAG, "first locate");
-                    LogHelper.d(TAG, "" + locationData.latitude + "  " + locationData.longitude);
-                    mBaiduMap.setMyLocationData(locationData);
-                    isFirstLocate = false;
-                }
-
-            }
-        }
-    };
-    private LocationManager mLocationManager;
-    private TextView mTvStepCount;
-
     private Context mContext;
-    private StepService mStepService;
 
+    private MapView mMapView;
+    private BaiduMap mBaiduMap;
+    private LocationManager mLocationManager;
+
+    private TextView mTvStepCount;
+    private StepService mStepService;
     private boolean mIsRunning = false;
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+    private ServiceConnection mStepConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mStepService = ((StepService.StepBinder) service).getService();
@@ -91,12 +58,22 @@ public class HomeFragment extends Fragment {
             mStepService = null;
         }
     };
+    private TrackService mTrackService;
+    private ServiceConnection mTrackConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mTrackService = (TrackService) ((ServiceBinder) service).getService();
+            mLocationManager.addListener(mTrackService);
+            mTrackService.addCallback(mTrackCallback);
+            mDrawer.drawAll(mTrackService.getTrack());
+        }
 
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mLocationManager.removeListener(mTrackService);
+            mTrackService = null;
+        }
+    };
 
     @Nullable
     @Override
@@ -111,8 +88,9 @@ public class HomeFragment extends Fragment {
         mBaiduMap.setMyLocationEnabled(true);
         mLocationManager = new LocationManager(getActivity(), mMapView);
         mLocationManager.init();
-        mLocationManager.requestLocation();
 
+        mLocationManager.requestLocation();
+/**
 //        try {
 //            long start = System.currentTimeMillis();
 //            XmlWriter writer = new XmlWriter();
@@ -127,23 +105,23 @@ public class HomeFragment extends Fragment {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-        try {
-            XmlReader reader = new XmlReader();
-            reader.parse(getActivity(), "2015-12-05.xml", new XmlReader.Callback() {
-                @Override
-                public void start(String name, String date) {
-                    Log.d(TAG, String.format("name:%s,date:%s",name,date));
-                }
-
-                @Override
-                public void findNext(int position, double lat, double lng) {
-                    Log.d(TAG, String.format("position:%d,lat:%f,lng:%f", position, lat, lng));
-                }
-            });
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        }
-
+//        try {
+//            XmlReader reader = new XmlReader();
+//            reader.parse(getActivity(), "2015-12-05.xml", new XmlReader.Callback() {
+//                @Override
+//                public void start(String name, String date) {
+//                    Log.d(TAG, String.format("name:%s,date:%s",name,date));
+//                }
+//
+//                @Override
+//                public void findNext(int position, double lat, double lng) {
+//                    Log.d(TAG, String.format("position:%d,lat:%f,lng:%f", position, lat, lng));
+//                }
+//            });
+//        } catch (XmlPullParserException e) {
+//            e.printStackTrace();
+//        }
+ */
         return root;
     }
 
@@ -151,22 +129,27 @@ public class HomeFragment extends Fragment {
         if (!mIsRunning) {
             mContext = getActivity();
             mContext.startService(new Intent(mContext, StepService.class));
+            mContext.startService(new Intent(mContext, TrackService.class));
             mIsRunning = true;
         }
     }
 
     private void bindStepService() {
         mContext.bindService(new Intent(mContext, StepService.class),
-                mServiceConnection, Context.BIND_AUTO_CREATE);
+                mStepConnection, Context.BIND_AUTO_CREATE);
+        mContext.bindService(new Intent(mContext,TrackService.class),
+                mTrackConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void unbindService() {
-        mContext.unbindService(mServiceConnection);
+        mContext.unbindService(mStepConnection);
+        mContext.unbindService(mTrackConnection);
     }
 
     private void stopService() {
         if (mStepService != null) {
             mContext.stopService(new Intent(mContext, StepService.class));
+            mContext.stopService(new Intent(mContext, TrackService.class));
             mIsRunning = false;
         }
     }
@@ -197,6 +180,13 @@ public class HomeFragment extends Fragment {
         mLocationManager.onDestroy();
         mHandler.removeMessages(STEPS_MSG);
     }
+    private TrackDrawer mDrawer = new TrackDrawer(mBaiduMap);
+    private TrackService.Callback mTrackCallback = new TrackService.Callback() {
+        @Override
+        public void onDrawNextTrack(List<LatLng> points) {
+            mDrawer.drawPoints(points);
+        }
+    };
 
     private StepService.Callback mCallback = new StepService.Callback() {
         @Override

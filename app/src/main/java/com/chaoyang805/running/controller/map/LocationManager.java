@@ -92,7 +92,7 @@ public class LocationManager implements BDLocationListener {
 
         option.setIsNeedLocationPoiList(true);
         //设置扫描间隔为5min
-        option.setScanSpan(mScanSpanMillis);
+        option.setScanSpan(3000);
         //开启GPS
         option.setOpenGps(true);
         option.setEnableSimulateGps(true);
@@ -154,14 +154,10 @@ public class LocationManager implements BDLocationListener {
                     .accuracy(bdLocation.getRadius())
                     .direction(bdLocation.getDirection())
                     .build();
-            if (isFirstLocate) {
-                mBaiduMap.setMyLocationData(mLocationData);
-                isFirstLocate = false;
-            }
+            mBaiduMap.setMyLocationData(mLocationData);
+            isFirstLocate = false;
             //我的位置得到了更新，将我的最新位置信息发送给服务器
-            if (mListener != null) {
-                mListener.onLocationUpdate(bdLocation);
-            }
+            notifyListener(bdLocation);
             //重新定位成功后，恢复默认的扫描间隔
             if (mFailureCount > 0) {
                 mFailureCount = 0;
@@ -177,7 +173,15 @@ public class LocationManager implements BDLocationListener {
             } else {
                 setScanSpan(60000);
             }
-            ToastUtils.showToast(mContext,"定位失败");
+            ToastUtils.showToast(mContext, "定位失败");
+        }
+    }
+
+    private void notifyListener(BDLocation bdLocation) {
+        if (mListeners.size() > 0) {
+            for (OnLocationUpdateListener listener : mListeners) {
+                listener.onLocationUpdate(bdLocation);
+            }
         }
     }
 
@@ -192,10 +196,6 @@ public class LocationManager implements BDLocationListener {
         mClient.setLocOption(option);
     }
 
-
-
-
-
     /**
      * 位置信息更新时的回调接口
      */
@@ -203,15 +203,20 @@ public class LocationManager implements BDLocationListener {
         void onLocationUpdate(BDLocation bdLocation);
     }
 
-    private OnLocationUpdateListener mListener;
+
+    private List<OnLocationUpdateListener> mListeners = new ArrayList<>();
 
     /**
      * 注册位置更新监听的方法
      *
      * @param listener
      */
-    public void registerLocationListener(OnLocationUpdateListener listener) {
-        mListener = listener;
+    public void addListener(OnLocationUpdateListener listener) {
+        mListeners.add(listener);
+    }
+
+    public void removeListener(OnLocationUpdateListener listener) {
+        mListeners.remove(listener);
     }
 
     /**

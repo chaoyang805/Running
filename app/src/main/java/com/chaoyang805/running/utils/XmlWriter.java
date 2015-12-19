@@ -1,4 +1,4 @@
-package com.chaoyang805.running;
+package com.chaoyang805.running.utils;
 
 import android.content.Context;
 import android.util.Xml;
