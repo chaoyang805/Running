@@ -92,7 +92,7 @@ public class LocationManager implements BDLocationListener {
 
         option.setIsNeedLocationPoiList(true);
         //设置扫描间隔为5min
-        option.setScanSpan(3000);
+        option.setScanSpan(mScanSpanMillis);
         //开启GPS
         option.setOpenGps(true);
         option.setEnableSimulateGps(true);

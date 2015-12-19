@@ -65,6 +65,7 @@ public class HomeFragment extends Fragment {
             mTrackService = (TrackService) ((ServiceBinder) service).getService();
             mLocationManager.addListener(mTrackService);
             mTrackService.addCallback(mTrackCallback);
+            mBaiduMap.clear();
             mDrawer.drawAll(mTrackService.getTrack());
         }
 
