@@ -45,6 +45,7 @@
 
         <com.chaoyang805.running.ui.view.MainDetailTextView
             android:id="@+id/tv_step_count"
+            android:elevation="5dp"
             style="@style/LabelTextViewStyle"
             chaoyang805:detailText="步数"
             chaoyang805:mainText="0"
@@ -52,6 +53,7 @@
 
         <com.chaoyang805.running.ui.view.MainDetailTextView
             android:id="@+id/tv_distance"
+            android:elevation="5dp"
             style="@style/LabelTextViewStyle"
             chaoyang805:detailText="距离(km)"
             chaoyang805:mainText="0.00"
@@ -59,6 +61,7 @@
 
         <com.chaoyang805.running.ui.view.MainDetailTextView
             android:id="@+id/tv_calorie"
+            android:elevation="5dp"
             style="@style/LabelTextViewStyle"
             chaoyang805:detailText="卡路里"
             chaoyang805:mainText="0"
