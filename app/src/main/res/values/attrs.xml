@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MainDetailTextView">
+        <attr name="mainText" format="string"/>
+        <attr name="detailText" format="string"/>
+        <attr name="mainTextSize" format="dimension"/>
+        <attr name="detailTextSize" format="dimension"/>
+        <attr name="mainTextColor" format="color"/>
+        <attr name="detailTextColor" format="color"/>
+        <attr name="textInnerPadding" format="dimension"/>
+        <attr name="textGravity">
+            <flag name="center" value="0x10000"/>
+            <flag name="left" value="0x0001"/>
+            <flag name="top" value="0x0010"/>
+            <flag name="right" value="0x0100"/>
+            <flag name="bottom" value="0x1000"/>
+        </attr>
+    </declare-styleable>
+
+    <style name="LabelTextViewStyle">
+        <item name="android:clickable">true</item>
+        <item name="android:background">@drawable/label_selector</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:paddingTop">40dp</item>
+        <item name="mainTextColor">#484848</item>
+        <item name="detailTextColor">#CACACA</item>
+        <item name="detailTextSize">14sp</item>
+        <item name="mainTextSize">36sp</item>
+        <item name="textGravity">center</item>
+        <item name="textInnerPadding">8dp</item>
+    </style>
+</resources>

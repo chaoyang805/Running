@@ -1,4 +1,4 @@
-package com.chaoyang805.running;
+package com.chaoyang805.running.controller.step;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;

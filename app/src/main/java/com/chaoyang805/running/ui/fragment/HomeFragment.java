@@ -13,17 +13,17 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.model.LatLng;
 import com.chaoyang805.running.R;
-import com.chaoyang805.running.controller.TrackDrawer;
 import com.chaoyang805.running.controller.map.LocationManager;
+import com.chaoyang805.running.controller.map.TrackDrawer;
 import com.chaoyang805.running.service.ServiceBinder;
 import com.chaoyang805.running.service.StepService;
 import com.chaoyang805.running.service.TrackService;
+import com.chaoyang805.running.ui.view.MainDetailTextView;
 import com.chaoyang805.running.utils.LogHelper;
 
 import java.lang.ref.WeakReference;
@@ -40,7 +40,9 @@ public class HomeFragment extends Fragment {
     private BaiduMap mBaiduMap;
     private LocationManager mLocationManager;
 
-    private TextView mTvStepCount;
+    private MainDetailTextView mTvStepCount;
+    private MainDetailTextView mTvCalories;
+    private MainDetailTextView mTvDistance;
     private StepService mStepService;
     private boolean mIsRunning = false;
 
@@ -62,10 +64,17 @@ public class HomeFragment extends Fragment {
     private ServiceConnection mTrackConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            LogHelper.d(TAG, "onTrackService connected");
             mTrackService = (TrackService) ((ServiceBinder) service).getService();
+
             mLocationManager.addListener(mTrackService);
+
+            mDrawer = new TrackDrawer(mBaiduMap);
+
             mTrackService.addCallback(mTrackCallback);
+
             mBaiduMap.clear();
+
             mDrawer.drawAll(mTrackService.getTrack());
         }
 
@@ -75,53 +84,56 @@ public class HomeFragment extends Fragment {
             mTrackService = null;
         }
     };
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_home, container, false);
+        mTvStepCount = (MainDetailTextView) root.findViewById(R.id.tv_step_count);
+        mTvCalories = (MainDetailTextView) root.findViewById(R.id.tv_calorie);
+        mTvDistance = (MainDetailTextView) root.findViewById(R.id.tv_distance);
+
         mMapView = (MapView) root.findViewById(R.id.map_view);
-        mTvStepCount = (TextView) root.findViewById(R.id.tv_step_count);
-        mMapView.showZoomControls(false);
+
+        mMapView.showZoomControls(true);
         mMapView.showScaleControl(true);
         mBaiduMap = mMapView.getMap();
-        mBaiduMap.setMyLocationEnabled(true);
+//        mBaiduMap.setMyLocationEnabled(true);
         mLocationManager = new LocationManager(getActivity(), mMapView);
         mLocationManager.init();
 
         mLocationManager.requestLocation();
 /**
-//        try {
-//            long start = System.currentTimeMillis();
-//            XmlWriter writer = new XmlWriter();
-//            writer.start("chaoyang805", "2015.12.04 21:12:52");
-//            for (int i = 0; i < 5; i++) {
-//                writer.addPath(new LatLng(114.2342, 22.5322));
-//            }
-//            writer.end();
-//            writer.write(getActivity(), "2015-12-05.xml");
-//            long end = System.currentTimeMillis();
-//            Log.d(TAG, "total time = " + (end - start));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        try {
-//            XmlReader reader = new XmlReader();
-//            reader.parse(getActivity(), "2015-12-05.xml", new XmlReader.Callback() {
-//                @Override
-//                public void start(String name, String date) {
-//                    Log.d(TAG, String.format("name:%s,date:%s",name,date));
-//                }
-//
-//                @Override
-//                public void findNext(int position, double lat, double lng) {
-//                    Log.d(TAG, String.format("position:%d,lat:%f,lng:%f", position, lat, lng));
-//                }
-//            });
-//        } catch (XmlPullParserException e) {
-//            e.printStackTrace();
-//        }
+ //        try {
+ //            long start = System.currentTimeMillis();
+ //            XmlWriter writer = new XmlWriter();
+ //            writer.start("chaoyang805", "2015.12.04 21:12:52");
+ //            for (int i = 0; i < 5; i++) {
+ //                writer.addPath(new LatLng(114.2342, 22.5322));
+ //            }
+ //            writer.end();
+ //            writer.write(getActivity(), "2015-12-05.xml");
+ //            long end = System.currentTimeMillis();
+ //            Log.d(TAG, "total time = " + (end - start));
+ //        } catch (IOException e) {
+ //            e.printStackTrace();
+ //        }
+ //        try {
+ //            XmlReader reader = new XmlReader();
+ //            reader.parse(getActivity(), "2015-12-05.xml", new XmlReader.Callback() {
+ //                @Override
+ //                public void start(String name, String date) {
+ //                    Log.d(TAG, String.format("name:%s,date:%s",name,date));
+ //                }
+ //
+ //                @Override
+ //                public void findNext(int position, double lat, double lng) {
+ //                    Log.d(TAG, String.format("position:%d,lat:%f,lng:%f", position, lat, lng));
+ //                }
+ //            });
+ //        } catch (XmlPullParserException e) {
+ //            e.printStackTrace();
+ //        }
  */
         return root;
     }
@@ -138,7 +150,7 @@ public class HomeFragment extends Fragment {
     private void bindStepService() {
         mContext.bindService(new Intent(mContext, StepService.class),
                 mStepConnection, Context.BIND_AUTO_CREATE);
-        mContext.bindService(new Intent(mContext,TrackService.class),
+        mContext.bindService(new Intent(mContext, TrackService.class),
                 mTrackConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -181,7 +193,8 @@ public class HomeFragment extends Fragment {
         mLocationManager.onDestroy();
         mHandler.removeMessages(STEPS_MSG);
     }
-    private TrackDrawer mDrawer = new TrackDrawer(mBaiduMap);
+
+    private TrackDrawer mDrawer;
     private TrackService.Callback mTrackCallback = new TrackService.Callback() {
         @Override
         public void onDrawNextTrack(List<LatLng> points) {
@@ -194,15 +207,25 @@ public class HomeFragment extends Fragment {
         public void stepsChanged(int value) {
             LogHelper.d(TAG, "HomeFragment_stepsChanged:" + value);
             mHandler.obtainMessage(STEPS_MSG, value, 0).sendToTarget();
+        }
 
+        @Override
+        public void calorieChanged(float value) {
+            mHandler.obtainMessage(CALORIE_MSG, (int) value, 0).sendToTarget();
         }
     };
 
     public void updateSteps(int value) {
         mTvStepCount.setText("" + value);
     }
-
+    private void updateCalories(int calories) {
+        LogHelper.d(TAG, "updateCalories:" + calories);
+        mTvCalories.setText("" + calories);
+    }
     private static final int STEPS_MSG = 0x01;
+    private static final int CALORIE_MSG = 0x02;
+
+
     private StepServiceHandler mHandler = new StepServiceHandler(this);
 
     static class StepServiceHandler extends Handler {
@@ -216,11 +239,16 @@ public class HomeFragment extends Fragment {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            final Fragment fragment = mReference.get();
             switch (msg.what) {
                 case STEPS_MSG:
-                    final Fragment fragment = mReference.get();
                     if (fragment != null) {
                         ((HomeFragment) fragment).updateSteps(msg.arg1);
+                    }
+                    break;
+                case CALORIE_MSG:
+                    if (fragment != null) {
+                        ((HomeFragment) fragment).updateCalories(msg.arg1);
                     }
                     break;
                 default:
@@ -228,4 +256,5 @@ public class HomeFragment extends Fragment {
             }
         }
     }
+
 }

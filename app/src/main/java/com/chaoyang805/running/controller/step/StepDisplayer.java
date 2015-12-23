@@ -1,4 +1,4 @@
-package com.chaoyang805.running;
+package com.chaoyang805.running.controller.step;
 
 import com.chaoyang805.running.utils.LogHelper;
 

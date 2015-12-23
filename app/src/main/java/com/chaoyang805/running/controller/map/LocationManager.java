@@ -16,6 +16,7 @@ import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
+import com.chaoyang805.running.utils.LogHelper;
 import com.chaoyang805.running.utils.ToastUtils;
 
 import java.util.ArrayList;
@@ -92,7 +93,7 @@ public class LocationManager implements BDLocationListener {
 
         option.setIsNeedLocationPoiList(true);
         //设置扫描间隔为5min
-        option.setScanSpan(mScanSpanMillis);
+        option.setScanSpan(3000);
         //开启GPS
         option.setOpenGps(true);
         option.setEnableSimulateGps(true);
@@ -118,9 +119,13 @@ public class LocationManager implements BDLocationListener {
      * 停止请求位置
      */
     public void stopRequest() {
+        // 退出时销毁定位
+        mClient.unRegisterLocationListener(this);
         if (mClient.isStarted()) {
             mClient.stop();
         }
+        // 关闭定位图层
+        mBaiduMap.setMyLocationEnabled(false);
     }
 
     /**
@@ -137,7 +142,7 @@ public class LocationManager implements BDLocationListener {
      */
     @Override
     public void onReceiveLocation(BDLocation bdLocation) {
-        Log.d("TAG", "onReceiveLocation");
+        Log.d(TAG, "onReceiveLocation");
         if (bdLocation == null) {
             return;
         }
@@ -180,6 +185,7 @@ public class LocationManager implements BDLocationListener {
     private void notifyListener(BDLocation bdLocation) {
         if (mListeners.size() > 0) {
             for (OnLocationUpdateListener listener : mListeners) {
+                LogHelper.d(TAG, "notify listener");
                 listener.onLocationUpdate(bdLocation);
             }
         }
@@ -237,10 +243,8 @@ public class LocationManager implements BDLocationListener {
      * 销毁地图
      */
     public void onDestroy() {
-        // 退出时销毁定位
-        mClient.unRegisterLocationListener(this);
-        // 关闭定位图层
-        mBaiduMap.setMyLocationEnabled(false);
+         stopRequest();
+
         //销毁BitmapDescriptor
         for (BitmapDescriptor markerView : mMarkerViews) {
             markerView.recycle();

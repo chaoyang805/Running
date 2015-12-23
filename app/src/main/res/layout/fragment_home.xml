@@ -1,21 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    xmlns:chaoyang805="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
     <com.baidu.mapapi.map.MapView
-        android:id="@+id/map_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="bottom"
-        android:clickable="true">
+    android:id="@+id/map_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="bottom"
+    android:clickable="true">
     </com.baidu.mapapi.map.MapView>
-    <TextView
-        android:layout_gravity="bottom|center_horizontal"
-        android:textSize="18sp"
-        android:textColor="@android:color/primary_text_light"
-        android:id="@+id/tv_step_count"
-        android:layout_width="wrap_content"
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="0"/>
+        android:background="#88FFFFFF"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:padding="16dp"
+            android:text="00:00:00"
+            android:textSize="48sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="时长"
+            android:textSize="14sp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#FFFFFFFF"
+        android:orientation="horizontal">
+
+        <com.chaoyang805.running.ui.view.MainDetailTextView
+            android:id="@+id/tv_step_count"
+            style="@style/LabelTextViewStyle"
+            chaoyang805:detailText="步数"
+            chaoyang805:mainText="0"
+            />
+
+        <com.chaoyang805.running.ui.view.MainDetailTextView
+            android:id="@+id/tv_distance"
+            style="@style/LabelTextViewStyle"
+            chaoyang805:detailText="距离(km)"
+            chaoyang805:mainText="0.00"
+            />
+
+        <com.chaoyang805.running.ui.view.MainDetailTextView
+            android:id="@+id/tv_calorie"
+            style="@style/LabelTextViewStyle"
+            chaoyang805:detailText="卡路里"
+            chaoyang805:mainText="0"
+            />
+
+    </LinearLayout>
 </FrameLayout>

@@ -20,7 +20,6 @@ public class TrackService extends Service implements LocationManager.OnLocationU
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-
         return new ServiceBinder(this);
     }
 
@@ -45,11 +44,12 @@ public class TrackService extends Service implements LocationManager.OnLocationU
     public void addCallback(Callback callback){
         mCallback = callback;
     }
+
     @Override
     public void onLocationUpdate(BDLocation bdLocation) {
-        mTrack.add(new LatLng(bdLocation.getLatitude(),
+        boolean added = mTrack.add(new LatLng(bdLocation.getLatitude(),
                 bdLocation.getLongitude()));
-        if (mCallback != null) {
+        if (mCallback != null && added) {
             mCallback.onDrawNextTrack(mTrack.getLastPath());
         }
     }

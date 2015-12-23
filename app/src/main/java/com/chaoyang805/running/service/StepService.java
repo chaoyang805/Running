@@ -9,8 +9,9 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
-import com.chaoyang805.running.StepDetector;
-import com.chaoyang805.running.StepDisplayer;
+import com.chaoyang805.running.controller.calorie.CalorieNotifier;
+import com.chaoyang805.running.controller.step.StepDetector;
+import com.chaoyang805.running.controller.step.StepDisplayer;
 import com.chaoyang805.running.utils.LogHelper;
 
 /**
@@ -24,10 +25,28 @@ public class StepService extends Service {
     private StepDetector mStepDetector;
     private StepDisplayer mStepDisplayer;
 
+    private CalorieNotifier mCalorieNotifier;
+
     private Callback mCallback;
     private Sensor mSensor;
 
     private int mSteps;
+
+    private float mCalories;
+    private CalorieNotifier.Listener mCalorieListener = new CalorieNotifier.Listener() {
+        @Override
+        public void valueChanged(float value) {
+            mCalories = value;
+            passValue();
+        }
+
+        @Override
+        public void passValue() {
+            if (mCallback != null) {
+                mCallback.calorieChanged(mCalories);
+            }
+        }
+    };
 
     private StepDisplayer.Listener mStepListener = new StepDisplayer.Listener() {
         @Override
@@ -69,12 +88,14 @@ public class StepService extends Service {
         mStepDisplayer.addListener(mStepListener);
         mStepDetector.addStepListener(mStepDisplayer);
 
+        mCalorieNotifier = new CalorieNotifier(mCalorieListener);
+        mStepDetector.addStepListener(mCalorieNotifier);
+
     }
 
     public void reloadSettings() {
-        if (mStepDisplayer != null) {
-            mStepDisplayer.reloadSettings();
-        }
+        if (mStepDisplayer != null) mStepDisplayer.reloadSettings();
+        if (mCalorieNotifier != null) mCalorieNotifier.reloadSettings();
     }
 
     @Override
@@ -89,6 +110,8 @@ public class StepService extends Service {
 
     public interface Callback {
         void stepsChanged(int value);
+
+        void calorieChanged(float value);
     }
 
     public class StepBinder extends Binder {

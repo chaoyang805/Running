@@ -1,11 +1,10 @@
-package com.chaoyang805.running.controller;
+package com.chaoyang805.running.controller.map;
 
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.Polyline;
 import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.model.LatLng;
-import com.chaoyang805.running.controller.map.TrackRecorder;
 import com.chaoyang805.running.model.SportsTrack;
 import com.chaoyang805.running.utils.LogHelper;
 
@@ -16,7 +15,7 @@ import java.util.List;
  * Created by chaoyang805 on 2015/12/19.
  */
 public class TrackDrawer {
-    private static final String TAG = LogHelper.makeLogTag(TrackRecorder.class);
+    private static final String TAG = LogHelper.makeLogTag(TrackDrawer.class);
     private BaiduMap mBaiduMap;
 
     public TrackDrawer(BaiduMap map) {
@@ -42,6 +41,7 @@ public class TrackDrawer {
     }
 
     public void drawAll(SportsTrack track) {
+        LogHelper.d(TAG, "drawALl");
         List<LatLng> points = new ArrayList<>(track.getPaths());
         drawPoints(points);
     }
